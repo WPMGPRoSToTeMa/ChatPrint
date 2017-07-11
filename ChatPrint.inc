@@ -44,7 +44,7 @@
 #define CHATPRINT_GREY_COLOR_NUMBER     '7'
 
 #define CHATPRINT_USERMSG_MAXBYTES      192
-#define CHATPRINT_CHATMSG_MAXBYTES      (CHATPRINT_USERMSG_MAXBYTES - 1 - 3) // CHATPRINT_USERMSG_MAXBYTES - sizeof(byte) - sizeof("%s")
+#define CHATPRINT_CHATMSG_MAXBYTES      (CHATPRINT_USERMSG_MAXBYTES - 1 - sizeof(ChatPrint_PercentS1Phrase)) // 1 is for player id byte
 #define CHATPRINT_RAWCHATMSG_MAXBYTES   ((CHATPRINT_CHATMSG_MAXBYTES - 1 - 1) * 2 + 1) // (CHATPRINT_CHATMSG_MAXBYTES - sizeof(char(CHATPRINT_NEWLINE_CODE)) - sizeof(char(EOS))) * 2 + sizeof(char(EOS))
 
 #define CHATPRINT_PLAYERINFO_MAXINDEX   63
@@ -53,6 +53,7 @@
 #define CHATPRINT_GREY_COLOR_PLINDEX    CHATPRINT_PLAYERINFO_MAXINDEX
 
 static stock const CHATPRINT_LIBRARY_NAME[] = "ChatPrint";
+static stock const ChatPrint_PercentS1Phrase[] = "#Spec_PlayerItem";
 
 static stock g_msgidSayText;
 
@@ -109,7 +110,7 @@ static stock ChatPrint_PrepareAndSendMessage(clientIndex, const raw[]) {
 	new bool:useColors = false;
 	new msgLen = 0;
 	new colorPlayerIndex = clientIndex;
-	for (new rawPos = 0; raw[rawPos] != EOS && msgLen < (charsmax(message) - 1); rawPos++, msgLen++) { // charsmax(message) - sizeof(char(CHATPRINT_NEWLINE_CODE))
+	for (new rawPos = 0; raw[rawPos] != EOS && (msgLen + 1) <= (charsmax(message) - 1); rawPos++, msgLen++) { // charsmax(message) - sizeof(char(CHATPRINT_NEWLINE_CODE))
 		switch (raw[rawPos]) {
 			case CHATPRINT_DEFAULT_COLOR_CODE, CHATPRINT_GREEN_COLOR_CODE: {
 				useColors = true;
@@ -178,7 +179,7 @@ static stock ChatPrint_PrepareAndSendMessage(clientIndex, const raw[]) {
 	
 	message_begin(MSG_ONE, g_msgidSayText, _, clientIndex);
 	write_byte(colorPlayerIndex);
-	write_string("%s");
+	write_string(ChatPrint_PercentS1Phrase);
 	
 	if (useColors && message[0] > CHATPRINT_GREEN_COLOR_CODE) {
 		write_char(CHATPRINT_DEFAULT_COLOR_CODE);
