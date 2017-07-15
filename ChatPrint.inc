@@ -20,32 +20,32 @@
 	const MAX_PLAYERS = 32;
 #endif
 
-#define CHATPRINT_NEWLINE_CODE          0x0A // '\n'
-#define CHATPRINT_COLOR_CTRLCHAR_CODE   0x5C // '\'
-#define CHATPRINT_DEFAULT_COLOR_CODE    1
-#define CHATPRINT_TEAM_COLOR_CODE       3
-#define CHATPRINT_GREEN_COLOR_CODE      4
-#define CHATPRINT_RED_COLOR_CODE        5
-#define CHATPRINT_BLUE_COLOR_CODE       6
-#define CHATPRINT_GREY_COLOR_CODE       7
-#define CHATPRINT_DEFAULT_COLOR_LETTER  'd' // default
-#define CHATPRINT_DEFAULT_COLOR_LETTER2 'y' // yellow
-#define CHATPRINT_DEFAULT_COLOR_LETTER3 'n' // none
-#define CHATPRINT_DEFAULT_COLOR_NUMBER  '1'
-#define CHATPRINT_TEAM_COLOR_LETTER     't' // team
-#define CHATPRINT_TEAM_COLOR_NUMBER     '3'
-#define CHATPRINT_GREEN_COLOR_LETTER    'g' // green
-#define CHATPRINT_GREEN_COLOR_NUMBER    '4'
-#define CHATPRINT_RED_COLOR_LETTER      'r' // red
-#define CHATPRINT_RED_COLOR_NUMBER      '5'
-#define CHATPRINT_BLUE_COLOR_LETTER     'b' // blue
-#define CHATPRINT_BLUE_COLOR_NUMBER     '6'
-#define CHATPRINT_GREY_COLOR_LETTER     'w' // white
-#define CHATPRINT_GREY_COLOR_NUMBER     '7'
+#define CHATPRINT_LOCALIZATION_DISABLER_CODE 1
+#define CHATPRINT_COLOR_CTRLCHAR_CODE        0x5C // '\'
+#define CHATPRINT_DEFAULT_COLOR_CODE         1
+#define CHATPRINT_TEAM_COLOR_CODE            3
+#define CHATPRINT_GREEN_COLOR_CODE           4
+#define CHATPRINT_RED_COLOR_CODE             5
+#define CHATPRINT_BLUE_COLOR_CODE            6
+#define CHATPRINT_GREY_COLOR_CODE            7
+#define CHATPRINT_DEFAULT_COLOR_LETTER       'd' // default
+#define CHATPRINT_DEFAULT_COLOR_LETTER2      'y' // yellow
+#define CHATPRINT_DEFAULT_COLOR_LETTER3      'n' // none
+#define CHATPRINT_DEFAULT_COLOR_NUMBER       '1'
+#define CHATPRINT_TEAM_COLOR_LETTER          't' // team
+#define CHATPRINT_TEAM_COLOR_NUMBER          '3'
+#define CHATPRINT_GREEN_COLOR_LETTER         'g' // green
+#define CHATPRINT_GREEN_COLOR_NUMBER         '4'
+#define CHATPRINT_RED_COLOR_LETTER           'r' // red
+#define CHATPRINT_RED_COLOR_NUMBER           '5'
+#define CHATPRINT_BLUE_COLOR_LETTER          'b' // blue
+#define CHATPRINT_BLUE_COLOR_NUMBER          '6'
+#define CHATPRINT_GREY_COLOR_LETTER          'w' // white
+#define CHATPRINT_GREY_COLOR_NUMBER          '7'
 
 #define CHATPRINT_USERMSG_MAXBYTES      192
 #define CHATPRINT_CHATMSG_MAXBYTES      (CHATPRINT_USERMSG_MAXBYTES - 1 - sizeof(ChatPrint_PercentS1Phrase)) // 1 is for player id byte
-#define CHATPRINT_RAWCHATMSG_MAXBYTES   ((CHATPRINT_CHATMSG_MAXBYTES - 1 - 1) * 2 + 1) // (CHATPRINT_CHATMSG_MAXBYTES - sizeof(char(CHATPRINT_NEWLINE_CODE)) - sizeof(char(EOS))) * 2 + sizeof(char(EOS))
+#define CHATPRINT_RAWCHATMSG_MAXBYTES   ((CHATPRINT_CHATMSG_MAXBYTES - 1 - 1) * 2 + 1) // (CHATPRINT_CHATMSG_MAXBYTES - sizeof(char(CHATPRINT_LOCALIZATION_DISABLER_CODE)) - sizeof(char(EOS))) * 2 + sizeof(char(EOS))
 
 #define CHATPRINT_PLAYERINFO_MAXINDEX   63
 #define CHATPRINT_RED_COLOR_PLINDEX     (CHATPRINT_PLAYERINFO_MAXINDEX - 2)
@@ -110,7 +110,7 @@ static stock ChatPrint_PrepareAndSendMessage(clientIndex, const raw[]) {
 	new bool:useColors = false;
 	new msgLen = 0;
 	new colorPlayerIndex = clientIndex;
-	for (new rawPos = 0; raw[rawPos] != EOS && (msgLen + 1) <= (charsmax(message) - 1); rawPos++, msgLen++) { // charsmax(message) - sizeof(char(CHATPRINT_NEWLINE_CODE))
+	for (new rawPos = 0; raw[rawPos] != EOS && (msgLen + 1) <= (charsmax(message) - 1); rawPos++, msgLen++) { // charsmax(message) - sizeof(char(CHATPRINT_LOCALIZATION_DISABLER_CODE))
 		switch (raw[rawPos]) {
 			case CHATPRINT_DEFAULT_COLOR_CODE, CHATPRINT_GREEN_COLOR_CODE: {
 				useColors = true;
@@ -183,7 +183,7 @@ static stock ChatPrint_PrepareAndSendMessage(clientIndex, const raw[]) {
 	
 	if (useColors && message[0] > CHATPRINT_GREEN_COLOR_CODE) {
 		write_char(CHATPRINT_DEFAULT_COLOR_CODE);
-		if (msgLen > (charsmax(message) - 1 - 1)) { // charsmax(message) - sizeof(char(CHATPRINT_DEFAULT_COLOR_CODE)) - sizeof(char(CHATPRINT_NEWLINE_CODE))
+		if (msgLen > (charsmax(message) - 1 - 1)) { // charsmax(message) - sizeof(char(CHATPRINT_DEFAULT_COLOR_CODE)) - sizeof(char(CHATPRINT_LOCALIZATION_DISABLER_CODE))
 			msgLen = (charsmax(message) - 1 - 1);
 		}
 	}
@@ -226,7 +226,8 @@ static stock ChatPrint_PrepareAndSendMessage(clientIndex, const raw[]) {
 		}
 	}
 	
-	message[msgLen++] = CHATPRINT_NEWLINE_CODE;
+	// TODO: remove it if it is already in the end of message
+	message[msgLen++] = CHATPRINT_LOCALIZATION_DISABLER_CODE;
 	message[msgLen] = EOS;
 	
 	write_string(message);
@@ -284,7 +285,7 @@ static stock ChatPrint_Initialize() {
 	}
 }
 
-#undef CHATPRINT_NEWLINE_CODE
+#undef CHATPRINT_LOCALIZATION_DISABLER_CODE
 #undef CHATPRINT_COLOR_CTRLCHAR_CODE
 #undef CHATPRINT_DEFAULT_COLOR_CODE
 #undef CHATPRINT_TEAM_COLOR_CODE
