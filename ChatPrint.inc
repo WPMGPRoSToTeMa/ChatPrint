@@ -190,7 +190,9 @@ static stock ChatPrint_PrepareAndSendMessage(clientIndex, const raw[]) {
 		}
 	}
 	
-	// UTF-8 validation
+	// UTF-8 validation of the message ending
+	// It is needed since we are truncating message as bytes, not as unicode codepoints
+	// TODO: looks like we need to consider not only codepoints, but visible glyphs
 	if (msgLen >= 2 && message[msgLen-1] & 0x80) {
 		if (message[msgLen-1] & 0x40) {
 			msgLen--;
@@ -201,16 +203,11 @@ static stock ChatPrint_PrepareAndSendMessage(clientIndex, const raw[]) {
 					new k;
 					
 					if (message[i] & 0x20) {
+						// Only 1-4 successive bytes are valid in utf-8
+						// But goldsrc windows client can use only codepoints from 0 to 0xFFFF, so we can omit 4-byte sequences
+						// TODO: can linux client use codepoints higher than 0xFFFF?
 						/*if (message[i] & 0x10) {
-							if (message[i] & 0x8) {
-								if (message[i] & 0x4) {
-									k = 6;
-								} else {
-									k = 5;
-								}
-							} else {
-								k = 4;
-							}
+							k = 4;
 						} else {*/
 							k = 3;
 						/*}*/
