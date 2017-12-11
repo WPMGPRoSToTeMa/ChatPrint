@@ -20,7 +20,6 @@
 	const MAX_PLAYERS = 32;
 #endif
 
-#define CHATPRINT_LOCALIZATION_DISABLER 1
 #define CHATPRINT_COLOR_CTRLCHAR_CODE   0x5C // '\'
 #define CHATPRINT_DEFAULT_COLOR_CODE    1
 #define CHATPRINT_TEAM_COLOR_CODE       3
@@ -45,7 +44,7 @@
 
 #define CHATPRINT_USERMSG_MAXBYTES      192
 #define CHATPRINT_CHATMSG_MAXBYTES      (CHATPRINT_USERMSG_MAXBYTES - 1 - sizeof(ChatPrint_PercentS1Phrase)) // 1 is for player id byte
-#define CHATPRINT_RAWCHATMSG_MAXBYTES   ((CHATPRINT_CHATMSG_MAXBYTES - 1 - 1) * 2 + 1) // (CHATPRINT_CHATMSG_MAXBYTES - sizeof(char(CHATPRINT_LOCALIZATION_DISABLER)) - sizeof(char(EOS))) * 2 + sizeof(char(EOS))
+#define CHATPRINT_RAWCHATMSG_MAXBYTES   ((CHATPRINT_CHATMSG_MAXBYTES - 1) * 2 + 1) // (CHATPRINT_CHATMSG_MAXBYTES - sizeof(char(EOS))) * 2 + sizeof(char(EOS))
 
 #define CHATPRINT_PLAYERINFO_MAXINDEX   63
 #define CHATPRINT_RED_COLOR_PLINDEX     (CHATPRINT_PLAYERINFO_MAXINDEX - 2)
@@ -110,7 +109,7 @@ static stock ChatPrint_PrepareAndSendMessage(clientIndex, const raw[]) {
 	new bool:useColors = false;
 	new msgLen = 0;
 	new colorPlayerIndex = clientIndex;
-	for (new rawPos = 0; raw[rawPos] != EOS && (msgLen + 1) <= (charsmax(message) - 1); rawPos++, msgLen++) { // charsmax(message) - sizeof(char(CHATPRINT_LOCALIZATION_DISABLER))
+	for (new rawPos = 0; raw[rawPos] != EOS && (msgLen + 1) <= charsmax(message); rawPos++, msgLen++) {
 		switch (raw[rawPos]) {
 			case CHATPRINT_DEFAULT_COLOR_CODE, CHATPRINT_GREEN_COLOR_CODE: {
 				useColors = true;
@@ -181,10 +180,13 @@ static stock ChatPrint_PrepareAndSendMessage(clientIndex, const raw[]) {
 	write_byte(colorPlayerIndex);
 	write_string(ChatPrint_PercentS1Phrase);
 	
-	if (useColors && message[0] > CHATPRINT_GREEN_COLOR_CODE) {
+	// If message contains color codes, but doesn't begin with color code it will be uncolored
+	// If message begins with # it will be localized, so we can put color code at the beginning which will disable localizing, it is invisible so it won't affect the displayed message
+	// TODO: condition for localizability can be more narrow, but this complicates things and also this condition can be fully omitted, so we will always put this char in message, this solution will always eat 1 byte, but this makes the max message length constant and makes code simpler, so we can easily add new features such as splitting up long messages
+	if ((useColors && message[0] > CHATPRINT_GREEN_COLOR_CODE) || message[0] == '#') {
 		write_char(CHATPRINT_DEFAULT_COLOR_CODE);
-		if (msgLen > (charsmax(message) - 1 - 1)) { // charsmax(message) - sizeof(char(CHATPRINT_DEFAULT_COLOR_CODE)) - sizeof(char(CHATPRINT_LOCALIZATION_DISABLER))
-			msgLen = (charsmax(message) - 1 - 1);
+		if (msgLen > (charsmax(message) - 1)) { // charsmax(message) - sizeof(char(CHATPRINT_DEFAULT_COLOR_CODE))
+			msgLen = (charsmax(message) - 1);
 		}
 	}
 	
@@ -226,8 +228,6 @@ static stock ChatPrint_PrepareAndSendMessage(clientIndex, const raw[]) {
 		}
 	}
 	
-	// TODO: remove it if it is already in the end of message
-	message[msgLen++] = CHATPRINT_LOCALIZATION_DISABLER;
 	message[msgLen] = EOS;
 	
 	write_string(message);
@@ -285,7 +285,6 @@ static stock ChatPrint_Initialize() {
 	}
 }
 
-#undef CHATPRINT_LOCALIZATION_DISABLER
 #undef CHATPRINT_COLOR_CTRLCHAR_CODE
 #undef CHATPRINT_DEFAULT_COLOR_CODE
 #undef CHATPRINT_TEAM_COLOR_CODE
