@@ -1,0 +1,4 @@
+# Set default behavior for line endings
+* text=auto
+
+*.inc text diff=pawn
